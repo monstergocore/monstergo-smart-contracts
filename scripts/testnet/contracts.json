@@ -1,0 +1,8 @@
+{
+  "monster_token_addr": "0x9364523a9ef3293a9aa1ca4d45f44dc132ba48bb",
+  "lp_wallet_addr": "0x0bB015C6F3fCE38eF50Df26259512FF90A014795",
+  "game_wallet_addr": "0x8058b4611d05CD57aFA98Ce97d8eF133f2b3d012",
+  "trade_wallet_addr": "0x3e891EC8EEC582F47c2335325d0898bDc4C99FC8",
+  "dao_wallet_addr": "0x240f67E207Cb4aFE6e76970Cf2ce46580455FD42",
+  "burn_addr": "0x000000000000000000000000000000000000dEaD"
+}

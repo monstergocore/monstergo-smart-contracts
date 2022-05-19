@@ -1,0 +1,6 @@
+.DS_Store
+/build/
+env.json
+env-prod.json
+/node_modules/
+package-lock.json
