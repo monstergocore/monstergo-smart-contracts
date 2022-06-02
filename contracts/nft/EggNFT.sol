@@ -64,12 +64,6 @@ contract EggNFT is ERC721, Ownable {
   		_setBaseURI(_baseUri);
   	}
 
-  	function setMinters(address _address, bool _allow) public onlyOwner {
-  		require(_address != address(0), "zero_address");
-  		require(minters[_address] != _allow, "no edit");
-  		minters[_address] = _allow;
-  	}
-
     function getCatId(uint256 _tokenId) public pure returns (uint256) {
   			return _tokenId.mod(1000);
   	}
