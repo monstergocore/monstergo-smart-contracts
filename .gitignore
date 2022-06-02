@@ -5,3 +5,4 @@ env-prod.json
 /node_modules/
 package-lock.json
 /contracts/MonsterGoToken.sol
+/scripts
