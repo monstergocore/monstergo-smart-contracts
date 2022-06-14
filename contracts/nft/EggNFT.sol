@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 contract EggNFT is ERC721, Ownable {
 
     //
-    mapping(address => bool) public minters;
+    mapping(address => bool) public operators;
     uint256 public NFT_MAX_SUPPLY = 12000;
     // LaunchpadNFT
     address public LAUNCHPAD;
@@ -26,6 +26,13 @@ contract EggNFT is ERC721, Ownable {
     mapping(address => uint256[]) private mintCatIds;
     mapping(address => mapping(uint256 => uint256)) private mintCatStocks;
 
+    // eggTokenId => breed blockNumber
+    mapping(uint256 => uint256) public eggBreedBlocks;
+
+    event mintCatStockEvent(address indexed owner, address seller, uint256 maxSupply, uint256[] catIds, uint256[] stocks);
+    event setOperatorEvent(address indexed owner, address operator, bool allow);
+    event lauchpadEvent(address indexed owner, address launchpad);
+
     constructor(string memory _baseUri,
                 string memory _name,
                 string memory _symbol,
@@ -38,6 +45,11 @@ contract EggNFT is ERC721, Ownable {
 
   	modifier onlyMint() {
   		require(sellerStages[msg.sender].maxSupply > 0, "must call by mint");
+  		_;
+  	}
+
+    modifier onlyOperator() {
+  		require(_msgSender() == owner() || operators[msg.sender], "not operator");
   		_;
   	}
 
@@ -104,16 +116,17 @@ contract EggNFT is ERC721, Ownable {
   		uint256 _catId,
   		bytes memory _data
   	) public onlyMint returns (uint256 tokenId) {
+      require(_to != address(0), "can't mint to empty address");
   		require(_catId > 0 && _catId < 1000, "invalid catId");
       tokenId = (ERC721.totalSupply() + 1) * 1000 + _catId;
       if(ERC721.totalSupply() >= NFT_MAX_SUPPLY){
           revert("Reached the limit");
       }
       address _seller = msg.sender;
+      require(sellerStages[_seller].supply + 1 <= sellerStages[_seller].maxSupply, "max supply reached");
       mintCatStocks[_seller][_catId] = mintCatStocks[_seller][_catId].sub(1);
   		_safeMint(_to, tokenId, _data);
       sellerStages[_seller].supply += 1;
-
   	}
 
   	function burn(address _from, uint256 _tokenId) external {
@@ -122,8 +135,15 @@ contract EggNFT is ERC721, Ownable {
       _burn(_tokenId);
   	}
 
+    function setBreedBlock(uint256 _tokenId, uint256 _blockNumber) external onlyOperator {
+       eggBreedBlocks[_tokenId] = _blockNumber;
+    }
+
     function setLauchpad(address _launchpad) external onlyOwner {
+        require(_launchpad != address(0),  "launchpad empty address");
         LAUNCHPAD = _launchpad;
+
+        emit lauchpadEvent(msg.sender, _launchpad);
     }
 
     function setMintCatStocks(address _seller,
@@ -139,6 +159,8 @@ contract EggNFT is ERC721, Ownable {
           }
 
           _stageInfo.maxSupply = _maxSupply;
+
+          emit mintCatStockEvent(msg.sender, _seller, _maxSupply, _catIds, _stocks);
 
     }
 
@@ -161,6 +183,14 @@ contract EggNFT is ERC721, Ownable {
 
         return (_catIds, _stocks);
     }
+
+  	function setOperators(address _address, bool _allow) public onlyOwner {
+  		require(_address != address(0), "zero_address");
+  		require(operators[_address] != _allow, "the allow is not change");
+  		operators[_address] = _allow;
+
+      emit setOperatorEvent(msg.sender, _address, _allow);
+  	}
 
     function _randomNFTCatId(address _seller,
                              address _to,
